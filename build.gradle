@@ -1,0 +1,23 @@
+buildscript {
+    ext.kotlin_version = '1.1.51'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        compile "org.jetbrains.kotlin:kotlin-reflect"
+        testCompile "org.jetbrains.kotlin:kotlin-test"
+        testCompile "org.jetbrains.kotlin:kotlin-test-junit"
+        compile "org.jetbrains.kotlin:kotlin-stdlib-jre8"
+    }
+}
+plugins {
+    id "org.jetbrains.kotlin.jvm" version "1.1.51"
+}
+kotlin {
+    experimental {
+        coroutines 'enable'
+    }
+}
