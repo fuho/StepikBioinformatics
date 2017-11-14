@@ -3,6 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/StepikBioinformatics.iml" filepath="$PROJECT_DIR$/StepikBioinformatics.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/StepikBioinformatics_deploy.iml" filepath="$PROJECT_DIR$/.idea/modules/StepikBioinformatics_deploy.iml" group="StepikBioinformatics" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/StepikBioinformatics_main.iml" filepath="$PROJECT_DIR$/.idea/modules/StepikBioinformatics_main.iml" group="StepikBioinformatics" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/StepikBioinformatics_test.iml" filepath="$PROJECT_DIR$/.idea/modules/StepikBioinformatics_test.iml" group="StepikBioinformatics" />
     </modules>
   </component>
 </project>
