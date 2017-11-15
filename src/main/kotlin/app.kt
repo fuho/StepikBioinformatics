@@ -12,29 +12,49 @@ fun main(args: Array<String>) {
         "complement" ->
             println("Complement to:\n${data[0]}\nis:\n${data[0].reverseComplement}")
         "indexes" -> {
-
-            var patternIndexes = listOf<Int>()
+            var patternIndexes = setOf<Int>()
             val millis = measureTimeMillis {
-                var patternIndexes = data[1].patternIndexes(data[0])
+                patternIndexes = data[1].patternIndexes(data[0])
             }
-            println(
-                    "Indexes of :\n${data[0]}\nin:\n${data[1]}\nare:"
-                            + "\n${patternIndexes.joinToString(separator = " ")}\n"
-                            + "and it took ${millis}ms to calculate."
+            println("""
+                |Indexes of :
+                |${data[0]}
+                |in:
+                |${data[1]}
+                |are:
+                |${patternIndexes.joinToString(separator = " ")}
+                |and it took ${millis}ms to calculate.""".trimMargin()
             )
-
+        }
+        "clumps" -> {
+            var clumps = setOf<String>()
+            val sequence: String = data[0]
+            val (k, l, t) = data[1].split(" ").map { it.toInt() }
+            val millis = measureTimeMillis {
+                clumps = sequence.clumps(k, l, t)
+            }
+            println("""
+                |k:$k, L:$l, t:$t clumps of
+                |${sequence}
+                |are
+                |${clumps.joinToString(separator = " ")}
+                |and it took ${millis}ms to calculate.""".trimMargin()
+            )
         }
         else -> println("Unknown command $command")
     }
 }
 
-private fun String.patternIndexes(pattern: CharSequence): List<Int> {
-    val indexes = mutableListOf<Int>()
+fun String.patternIndexes(pattern: CharSequence): Set<Int> {
+    val indexes = mutableSetOf<Int>()
     for (index in 0..(length - pattern.length)) {
         if (pattern == substring(index..index + pattern.length - 1)) indexes.add(index)
     }
     return indexes
 }
+
+fun String.patternCount(pattern: CharSequence): Int = patternIndexes(pattern).size
+
 
 fun String.countSequence(sequence: CharSequence): Int = patternIndexes(sequence).count()
 
@@ -65,6 +85,11 @@ val String.reverseComplement: String
                 .joinToString(separator = "")
 
 
-fun String.clumps(k: Int, l: Int, t: Int): List<String> {
-    TODO("Implement this")
-}
+fun String.clumps(k: Int, l: Int, t: Int): Set<String> =
+        kMers(k)
+                .filter { it.key >= t }
+                .flatMap { it.value }
+                .filter { kMer ->
+                    List(length - l + 1, { i -> substring(i..i + l - 1) })
+                            .any { lSection -> lSection.patternCount(kMer) >= t }
+                }.toSet()
