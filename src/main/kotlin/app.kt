@@ -1,17 +1,41 @@
 import java.io.File
+import java.util.*
 import kotlin.system.measureTimeMillis
 
 fun main(args: Array<String>) {
     val command = args[0]
-    val data = File(args[1]).inputStream().bufferedReader().readLines()
     when (command) {
-        "k-mers" ->
+        "k-mers old" -> {
+            val data = File(args[1]).inputStream().bufferedReader().readLines()
             println("K-mers of length '${data[1]}' found in dataset: ${data[0].longestKMers(data[1].toInt()).joinToString(separator = " ")}")
-        "sequence" ->
+        }
+        "k-mers" -> {
+            if (args.size < 5) {
+                println("Invalid input: ${args.joinToString { " " }}")
+                return
+            }
+            val fileName = args[1]
+            val k = args[2].toInt()
+            val l = args[3].toInt()
+            val t = args[4].toInt()
+            val dataset: ByteArray = File(fileName).readBytes()
+            var kMers: Map<String, List<Int>> = mapOf()
+            var clumps: Map<String, List<Int>> = mapOf()
+            val kMersMs = measureTimeMillis { kMers = dataset.kMersOfTPlus(k, t) }
+            println("Found ${kMers.size} ${k}-mers with t >= ${t} in ${kMersMs}ms.")
+            val clumpsMs = measureTimeMillis { clumps = kMers.clumps(l, t) }
+            println("Found ${clumps.size} ${l}-clumped ${k}-mers with t >= ${t} in ${clumpsMs}ms.")
+        }
+        "sequence" -> {
+            val data = File(args[1]).inputStream().bufferedReader().readLines()
             println("Sequence ${data[1]} found in dataset ${data[0].countSequence(data[1])} times.")
-        "complement" ->
+        }
+        "complement" -> {
+            val data = File(args[1]).inputStream().bufferedReader().readLines()
             println("Complement to:\n${data[0]}\nis:\n${data[0].reverseComplement}")
+        }
         "indexes" -> {
+            val data = File(args[1]).inputStream().bufferedReader().readLines()
             var patternIndexes = setOf<Int>()
             val millis = measureTimeMillis {
                 patternIndexes = data[1].patternIndexes(data[0])
@@ -27,6 +51,7 @@ fun main(args: Array<String>) {
             )
         }
         "clumps" -> {
+            val data = File(args[1]).inputStream().bufferedReader().readLines()
             var clumps = setOf<String>()
             val sequence: String = data[0]
             val (k, l, t) = data[1].split(" ").map { it.toInt() }
@@ -86,10 +111,35 @@ val String.reverseComplement: String
 
 
 fun String.clumps(k: Int, l: Int, t: Int): Set<String> =
-        kMers(k)
-                .filter { it.key >= t }
+        kMers(k).filter { it.key >= t }
                 .flatMap { it.value }
                 .filter { kMer ->
                     List(length - l + 1, { i -> substring(i..i + l - 1) })
                             .any { lSection -> lSection.patternCount(kMer) >= t }
                 }.toSet()
+
+fun ByteArray.kMers(k: Int): Map<String, List<Int>> {
+    val result: TreeMap<String, MutableList<Int>> = TreeMap()
+    var start = 0
+    var end = k - 1
+    while (end <= size) {
+        val indexes: MutableList<Int> = result.getOrPut(String(sliceArray(start..end))) { mutableListOf() }
+        indexes.add(start)
+        start++
+        end++
+    }
+    return result
+}
+
+fun ByteArray.kMersOfTPlus(k: Int, t: Int): Map<String, List<Int>> = kMers(k).filterValues { it.size >= t }
+
+fun Map<String, List<Int>>.clumps(l: Int, t: Int) = filter { (kMer, indexes) ->
+    val maxIndex = indexes.size - 1
+    val filterResult = indexes.withIndex().any { (indexI, indexV) ->
+        val shiftedIndexI = indexI + t - 1
+        if (shiftedIndexI > maxIndex) return@any false
+        val shiftedIndexV = indexes[shiftedIndexI]
+        shiftedIndexV - indexV + kMer.length <= l
+    }
+    return@filter filterResult
+}
